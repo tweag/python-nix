@@ -1,5 +1,5 @@
 import nix
-pkgs = nix.eval("import /home/yorick/nixpkgs { overlays = []; }")
+pkgs = nix.eval("import <nixpkgs> { }")
 
 hello = pkgs["hello"]
 hello.force()

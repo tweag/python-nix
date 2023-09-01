@@ -7,7 +7,7 @@
       devShells.x86_64-linux.default = pkgs.mkShell {
         buildInputs = [
           (pkgs.python3.withPackages
-            (p: [ p.cffi p.pkgconfig p.setuptools p.build ]))
+            (p: [ p.cffi p.pkgconfig p.setuptools p.build p.sphinx ]))
           nix.packages.x86_64-linux.default
           pkgs.pkg-config
           pkgs.ruff
