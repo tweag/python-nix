@@ -1,4 +1,4 @@
-nix/_nix_api_*.c
+src/nix/_nix_api_*.c
 *.o
 *.so
 __pycache__
