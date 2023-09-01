@@ -69,15 +69,18 @@ class Context:
 
 
 class NixAPIError(Exception):
+    """ Any Nix error """
     pass
 
 
 class NixError(NixAPIError):
+    """ represents a named nix error """
     msg: Optional[str]
     name: Optional[str]
 
 
 class ThrownError(NixError):
+    """ error from builtins.throw """
     def __repr__(self) -> str:
         if self.msg:
             return 'ThrownError("' + self.msg + '")'
@@ -86,6 +89,7 @@ class ThrownError(NixError):
 
 
 class AssertionError(NixError):
+    """ assert failure """
     pass
 
 
@@ -93,14 +97,17 @@ ERR_MAP = {"nix::ThrownError": ThrownError, "nix::AssertionError": AssertionErro
 
 
 class Settings:
+    """ Wrapper for Nix settings. Globally exposed as 'nix.util.settings' """
     def __init__(self) -> None:
         pass
 
     def __setitem__(self, key: str, value: str) -> None:
+        """ Set a Nix setting """
         with Ctx() as ctx:
             ctx.check(lib.nix_setting_set, key.encode(), value.encode())
 
     def __getitem__(self, key: str) -> str:
+        """ Retrieve Nix setting """
         value = ffi.new("char[1024]")
         with Ctx() as ctx:
             ctx.check(lib.nix_setting_get, key.encode(), value, len(value))
@@ -121,6 +128,7 @@ class Ctx:
         Ctx.ctx_level -= 1
 
 
+# settings
 settings = Settings()
 
 version = ffi.string(lib.nix_version_get()).decode()

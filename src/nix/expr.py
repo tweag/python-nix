@@ -17,6 +17,7 @@ __all__ = ["ExternalValue", "State", "Value", "Type", "Function", "PrimOp"]
 
 
 class State:
+    """ A Nix interpreter State """
     def __init__(self, search_path: list[str], store_wrapper: Store) -> None:
         ffi.init_once(lib.nix_libexpr_init, "init_libexpr")
         search_path_c = [ffi.new("char[]", path.encode()) for path in search_path]
@@ -28,6 +29,7 @@ class State:
         )
 
     def eval_string(self, expr_string: str, path: str) -> Value:
+        """ Evaluate a Nix expression string into a Value """
         val = self.alloc_val()
         expr = lib.nix_expr_eval_from_string(
             self._state, expr_string.encode(), path.encode(), val._value
@@ -35,9 +37,11 @@ class State:
         return val
 
     def alloc_val(self) -> Value:
+        """ Allocate an empty Value. Will crash when accessing without setting a value """
         return Value(self._state)
 
     def val_from_python(self, py_val: Evaluated) -> Value:
+        """ Create a Nix value from a Python value """
         v = self.alloc_val()
         v.set(py_val)
         return v
@@ -185,6 +189,7 @@ class PrimOp(ReferenceGC):
 
 
 class Value:
+    """ A Nix Value """
     def __init__(
         self,
         state_ptr: CData,

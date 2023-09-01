@@ -11,6 +11,7 @@ _store = None
 
 
 def eval(string: str, path: str = ".") -> Value:
+    """ Evaluate a Nix expression string into a Value, automatically allocating a state """
     from .store import Store
     from .expr import State
 

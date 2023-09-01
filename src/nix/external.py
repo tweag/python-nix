@@ -66,7 +66,15 @@ standard_def: CData = standard_def_
 
 
 class ExternalValueImpl(ReferenceGC):
+    """ Represents a Python value wrapped in a nix Value.
+    By default, this is suitable for wrapping any python value,
+    but can be subclassed for added customization.
+    """
     def __init__(self, value: Any) -> None:
+        """ Construct an external value
+
+        :param value: The value to to wrap
+        """
         self._handle = ffi.new_handle(self)
         # reference kept by ExternalValue
         self._ref = lib.nix_create_external_value(standard_def, self._handle)
@@ -80,20 +88,25 @@ class ExternalValueImpl(ReferenceGC):
         return ev
 
     def print(self, printer: Callable[[str], None]) -> None:
+        """ Called by Nix when showing this value in the repl """
         printer("<py: " + repr(self.value) + ">")
 
     def showType(self) -> str:
+        """ Called by Nix to get the type of the value for error messages """
         return "Nix External Value"
 
     def typeOf(self) -> str:
+        """ Called by builtins.typeOf """
         return "nix-external"
 
     def coerceToString(
         self, add_context: Callable[[str], None], copyMore: bool, copyToStore: bool
     ) -> str:
+        """ Called when trying to represent the value as a string, in interpolation or using builtins.toString """
         return repr(self.value)
 
     def equal(self, other: ExternalValueImpl) -> bool:
+        """ Called by nix on a == b"""
         return self.value is other.value
 
     def __repr__(self) -> str:
@@ -101,12 +114,14 @@ class ExternalValueImpl(ReferenceGC):
 
 
 class ExternalValue:
+    """ Represents a pointer to a Python value wrapped in a nix Value """
     def __init__(
         self,
         value: Any,
         from_ev: Optional[ExternalValueImpl] = None,
         constructor: type = ExternalValueImpl,
     ) -> None:
+        """ Create an External Value using the given implementation """
         if from_ev is not None:
             lib.nix_gc_incref(from_ev._ref)
             self._x = from_ev
