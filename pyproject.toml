@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-nix"
+version = "0.0.1"
+authors = [
+  { name="Yorick van Pelt", email="yorick.vanpelt@tweag.io" }
+]
+description = "Python bindings for Nix using CFFI"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Software Development :: Interpreters",
+    "Typing :: Typed"
+]
+dependencies = ['cffi>=1.0.0']
+
+[project.urls]
+"Homepage" = "https://github.com/tweag/python-nix"
+"Bug Tracker" = "https://github.com/tweag/python-nix/issues"
