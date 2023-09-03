@@ -1,16 +1,14 @@
 import nix
-pkgs = nix.eval("import <nixpkgs> { }")
+pkgs = nix.eval("import <nixpkgs> { overlays = []; }")
 
 hello = pkgs["hello"]
-hello.force()
 print(repr(hello))
 
 hello2 = pkgs["hello"]['overrideAttrs'](lambda o: {
     "pname": str(o["pname"]) + "-test"
 })
-hello2.force()
 print(repr(hello2))
-print(hello2.build(nix._store))
+print(hello2.build())
 
 class Hello:
     def __init__(self):

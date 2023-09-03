@@ -127,22 +127,20 @@ T = typing.TypeVar("T")
 
 # all primops use this code. first argument is secretly the primop handle
 @ffi.def_extern()
-def py_nix_primop_base(st: CData, pos: int, args: CData, v: CData) -> None:
-    op = ffi.from_handle(
-        ffi.cast("void*", int(Value(st, args[0], make_reference=True)))
-    )
-    assert type(op) is PrimOp
-    argv = []
-    for i in range(1, op.arity + 1):
-        argv.append(Value(st, args[i], make_reference=True))
-    result = Value(st, v, make_reference=True)
+def py_nix_primop_base(user_data: CData, c_ctx: CData, st: CData, args: CData, ret: CData) -> None:
+    result = Value(st, ret, make_reference=True)
     try:
+        op = ffi.from_handle(user_data)
+        assert type(op) is PrimOp
+        argv = []
+        for i in range(op.arity):
+            argv.append(Value(st, args[i], make_reference=True))
         res = op.func(*argv)
         result.set(res)
     except Exception as e:
         print("Error in callback")
         print(e)
-        # todo: return nix throw
+        lib_unwrapped.nix_set_err_msg(c_ctx, lib.NIX_ERR_UNKNOWN, str(e).encode())
         result.set(None)
 
 
@@ -160,7 +158,6 @@ class PrimOp(ReferenceGC):
         if varargs is not None or varkw is not None or defaults is not None:
             raise TypeError("only simple methods can be primops now")
         arity = len(args)
-        args = ["py_primop"] + args
         argnames_c = [ffi.new("char[]", path.encode()) for path in args]
         argnames_c.append(ffi.NULL)
 
@@ -174,14 +171,15 @@ class PrimOp(ReferenceGC):
 
         self.func = cb
         self.arity = arity
+        self.handle = ffi.new_handle(self)
         self._primop = lib.nix_alloc_primop(
             lib_unwrapped.py_nix_primop_base,
-            arity + 1,
+            arity,
             cb.__name__.encode(),
             argnames_ptr,
             self._docs,
+            self.handle
         )
-        self.handle = ffi.new_handle(self)
         super().__init__(self._primop)
 
     def unref(self) -> None:
@@ -384,7 +382,10 @@ class Value:
         self.force_type(Type.attrs)
         return iter(self)
 
-    def build(self, store: Store) -> dict[str, str]:
+    def build(self, store: Optional[Store] = None) -> dict[str, str]:
+        if store is None:
+            from . import _store
+            store = _store
         self.force_type(Type.attrs)
         if "type" in self and self["type"].force() == "derivation":
             return store.build(str(self["drvPath"]))
@@ -444,9 +445,5 @@ class Value:
             p = PrimOp(py_val)
             lib.nix_set_primop(self._value, p._primop)
             p.unref()
-            # now call this thing, replace self
-            arg = Value(self._state)
-            arg.set(int(ffi.cast("unsigned long", p.handle)))
-            lib.nix_value_call(self._state, self._value, arg._value, self._value)
         else:
             raise TypeError("tried to convert unknown type to nix")
