@@ -16,8 +16,8 @@ $ python
 # Hacking
 ```shell
 $ nix develop .#
-$ export PYTHONPATH=$PWD/src
-$ (cd src && python buildFFI.py)
+$ cd src
+$ python buildFFI.py
 $ python
 >>> import nix
 ```
