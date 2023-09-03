@@ -19,6 +19,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = ['cffi>=1.0.0']
+optional-dependencies = {docs= ["sphinx"]}
 
 [project.urls]
 "Homepage" = "https://github.com/tweag/python-nix"

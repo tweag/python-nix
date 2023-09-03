@@ -6,3 +6,4 @@ build/
 /dist/
 /src/python_nix.egg-info/
 docs/_build/
+/result
