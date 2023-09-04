@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections.abc
 import typing
 from collections.abc import Callable, Iterator
-from typing import Any, TypeAlias, Union
+from typing import Any, TypeAlias, Union, Optional
 import enum
 import inspect
 from threading import local as thread_local
@@ -392,6 +392,8 @@ class Value:
         if store is None:
             from . import _store
             store = _store
+        if store is None:
+            raise RuntimeError("No known Nix store open, try passing one to .build()")
         self.force_type(Type.attrs)
         if "type" in self and self["type"].force() == "derivation":
             return store.build(str(self["drvPath"]))
