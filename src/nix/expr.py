@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterator
 from typing import Any, TypeAlias, Union
 import enum
 import inspect
+from threading import local as thread_local
 from pathlib import PurePath
 
 from .util import settings, NixAPIError
@@ -129,6 +130,7 @@ T = typing.TypeVar("T")
 @ffi.def_extern()
 def py_nix_primop_base(user_data: CData, c_ctx: CData, st: CData, args: CData, ret: CData) -> None:
     result = Value(st, ret, make_reference=True)
+    PrimOp.calling_state.state = st
     try:
         op = ffi.from_handle(user_data)
         assert type(op) is PrimOp
@@ -142,6 +144,8 @@ def py_nix_primop_base(user_data: CData, c_ctx: CData, st: CData, args: CData, r
         print(e)
         lib_unwrapped.nix_set_err_msg(c_ctx, lib.NIX_ERR_UNKNOWN, str(e).encode())
         result.set(None)
+    finally:
+        PrimOp.calling_state.state = None
 
 
 class PrimOp(ReferenceGC):
@@ -150,6 +154,9 @@ class PrimOp(ReferenceGC):
     _docs: CData
     _primop: CData
     handle: CData
+
+    calling_state = thread_local()
+    "while inside a primop callback, this contains the interpreter State* pointer at PrimOp.calling_state.state"
 
     def __init__(self, cb: Callable[..., Evaluated | Value]) -> None:
         ffi.init_once(lib.nix_libexpr_init, "init_libexpr")
@@ -184,7 +191,6 @@ class PrimOp(ReferenceGC):
 
     def unref(self) -> None:
         lib.nix_gc_decref(self._primop)
-
 
 class Value:
     """ A Nix Value """
