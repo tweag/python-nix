@@ -13,7 +13,7 @@
         inherit (pkgs) python3;
       in {
         devShells.env = pkgs.mkShell {
-          buildInputs = [ (python3.withPackages (_: [self.packages.${system}.default])) ];
+          buildInputs = [ nix (python3.withPackages (_: [self.packages.${system}.default])) ];
         };
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
