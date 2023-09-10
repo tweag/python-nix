@@ -386,7 +386,8 @@ class Value:
 
     def keys(self) -> Iterator[str]:
         self.force_type(Type.attrs)
-        return iter(self)
+        for i in range(len(self)):
+            yield ffi.string(lib.nix_get_attr_name_byidx(self._value, self._state, i)).decode()
 
     def build(self, store: Optional[Store] = None) -> dict[str, str]:
         if store is None:
