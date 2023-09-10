@@ -294,7 +294,7 @@ class Value:
         return str(ffi.string(lib.nix_get_typename(self._value)).decode())
 
     def get_list_byidx(self, ix: int) -> Value:
-        value_ptr = lib.nix_get_list_byidx(self._value, ix)
+        value_ptr = lib.nix_get_list_byidx(self._value, self._state, ix)
         return Value(self._state, value_ptr)
 
     def get_attr_byname(self, name: str) -> Value:
