@@ -234,7 +234,7 @@ class Value:
             case Type.int:
                 return int(lib.nix_get_int(self._value))
             case Type.float:
-                return float(lib.nix_get_double(self._value))
+                return float(lib.nix_get_float(self._value))
             case Type.bool:
                 return bool(lib.nix_get_bool(self._value))
             case Type.string:
